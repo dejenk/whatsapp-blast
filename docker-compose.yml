@@ -1,0 +1,109 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: whatsapp-blast-db
+    environment:
+      POSTGRES_USER: blast_user
+      POSTGRES_PASSWORD: blast_secure_pass_123
+      POSTGRES_DB: whatsapp_blast
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blast_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - whatsapp-blast-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: whatsapp-blast-redis
+    command: redis-server --appendonly yes --requirepass redis_secure_pass_123
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - whatsapp-blast-net
+
+  backend:
+    image: node:20-alpine
+    container_name: whatsapp-blast-api
+    working_dir: /app
+    volumes:
+      - /opt/whatsapp-blast/backend:/app
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: blast_user
+      DB_PASSWORD: blast_secure_pass_123
+      DB_NAME: whatsapp_blast
+      REDIS_URL: redis://:redis_secure_pass_123@redis:6379
+      WHATSAPP_API_URL: https://graph.instagram.com/v18.0
+      WHATSAPP_WEBHOOK_TOKEN: webhook_verify_token
+    command: sh -c "npm install && node src/server.js"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    networks:
+      - whatsapp-blast-net
+    restart: unless-stopped
+
+  frontend:
+    image: node:20-alpine
+    container_name: whatsapp-blast-web
+    working_dir: /app
+    volumes:
+      - /opt/whatsapp-blast/frontend:/app
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    command: sh -c "npm install && npm run build && npm start"
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    networks:
+      - whatsapp-blast-net
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: whatsapp-blast-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/whatsapp-blast/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /opt/whatsapp-blast/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /opt/whatsapp-blast/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - whatsapp-blast-net
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  whatsapp-blast-net:
+    driver: bridge

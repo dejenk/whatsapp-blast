@@ -1,0 +1,35 @@
+{
+  "name": "whatsapp-blast-backend",
+  "version": "1.0.0",
+  "description": "WhatsApp Blast Dashboard API - Backend",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "echo 'Build placeholder'",
+    "migrate": "node src/db/migrate.js"
+  },
+  "keywords": ["whatsapp", "blast", "dashboard"],
+  "author": "Edo",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^4.24.0",
+    "@fastify/cors": "^8.4.0",
+    "pg": "^8.11.0",
+    "redis": "^5.0.0",
+    "bullmq": "^5.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.0.0",
+    "joi": "^17.10.0",
+    "jsonwebtoken": "^9.0.0",
+    "pino": "^8.16.0",
+    "pino-pretty": "^10.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
