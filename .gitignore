@@ -1,0 +1,44 @@
+# .gitignore for WhatsApp Blast
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Build
+dist/
+.next/
+build/
+out/
+
+# Logs
+*.log
+logs/
+.pm2/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Security
+*.key
+*.pem
+nginx/ssl/
+
+# Database
+*.db
+*.sqlite
+postgres-data/
+redis-data/
+
+# Large
+frontend/node_modules/
+backend/node_modules/
